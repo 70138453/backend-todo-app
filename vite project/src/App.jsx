@@ -1,43 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import FormComponent from './components/FormComponent';
-import DisplayComponent from './components/DisplayComponent';
+import { useRef } from "react";
+import axios from "axios";
 
-const App = () => {
-  const [tasks, setTasks] = useState([]);
+function App() {
+  const name = useRef();
+  const pass = useRef();
+  const name2 = useRef();
+  const pass2 = useRef();
 
-  // Fetch tasks from backend
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/tasks/')
-      .then((response) => setTasks(response.data))
-      .catch((error) => console.error('Error fetching tasks:', error));
-  }, []);
+  const signInHandler = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/token/", {
+        username: name.current.value,
+        password: pass.current.value,
+      });
 
-  // Add task handler
-  const handleAddTask = (name, detail) => {
-    const newTask = { name, detail };
-    axios.post('http://127.0.0.1:8000/api/tasks/', newTask)
-      .then((response) => setTasks([...tasks, response.data]))
-      .catch((error) => console.error('Error adding task:', error));
+      const accessToken = response.data.access;
+      const refreshToken = response.data.refresh;
+
+      localStorage.setItem("access", accessToken);
+      localStorage.setItem("refresh", refreshToken);
+
+      console.log("Access Token:", accessToken);
+      console.log("Refresh Token:", refreshToken);
+
+      alert("Sign In Successful");
+    } catch (error) {
+      console.error("Sign In Error:", error);
+      alert("Sign In Failed");
+    }
   };
 
-  // Delete task handler
-  const handleDeleteTask = (id) => {
-    axios.delete(`http://127.0.0.1:8000/api/tasks1/${id}/`)
-      .then(() => {
-        setTasks(tasks.filter((task) => task.id !== id));
-      })
-      .catch((error) => console.error('Error deleting task:', error));
+  const signUpHandler = async () => {
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/tasks/signup/", {
+        username: name2.current.value,
+        password: pass2.current.value,
+      });
+
+      const accessToken = response.data.access;
+      const refreshToken = response.data.refresh;
+
+      localStorage.setItem("access", accessToken);
+      localStorage.setItem("refresh", refreshToken);
+
+      console.log("Access Token:", accessToken);
+      console.log("Refresh Token:", refreshToken);
+
+      alert("Sign Up Successful");
+    } catch (error) {
+      console.error("Sign Up Error:", error);
+      alert("Sign Up Failed");
+    }
   };
 
   return (
     <div>
-      <h1>To-Do App</h1>
-      <h3>Please enter your task</h3>
-      <FormComponent handleAddTask={handleAddTask} />
-      <DisplayComponent tasks={tasks} handleDeleteTask={handleDeleteTask} />
+      {/* Sign In Section */}
+      <h1>Sign In</h1>
+      <input type="text" placeholder="Username" ref={name} />
+      <input type="password" placeholder="Password" ref={pass} />
+      <button onClick={signInHandler}>Sign In</button>
+
+      <hr />
+
+      {/* Sign Up Section */}
+      <h1>Sign Up</h1>
+      <input type="text" placeholder="Username" ref={name2} />
+      <input type="password" placeholder="Password" ref={pass2} />
+      <button onClick={signUpHandler}>Sign Up</button>
+      {localStorage.getItem("access")}
     </div>
   );
-};
+}
 
 export default App;
